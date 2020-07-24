@@ -189,10 +189,11 @@ def get_content_corpus(meta_list):
         citation = m.citation
         content_corpus.extend(title)
         if abstract is not None:
-            content_corpus.extend(abstract[j])
+            content_corpus.extend(abstract)
         if citation is not None:
             for j in citation:
-                content_corpus.extend(citation[j])
+                content_corpus.extend(j)
+    write_corpus(content_corpus, 'content_corpus.txt')
     return content_corpus
 
 
@@ -200,6 +201,7 @@ def get_author_corpus(meta_list):
     author_corpus = []  # author
     for m in meta_list:
         author_corpus.extend(m.author)
+    write_corpus(author_corpus, 'author_corpus.txt')
     return author_corpus
 
 
@@ -209,6 +211,89 @@ def get_affiliation_corpus(meta_list):
         affiliation = m.affiliation
         if affiliation is not None:
             for j in affiliation:
-                affiliation_corpus.extend(affiliation[j])
+                affiliation_corpus.extend(j)
+    write_corpus(affiliation_corpus, 'affiliation_corpus.txt')
     return affiliation_corpus
+
+
+def write_corpus(corpus, filename):
+    f = open(filename, 'w')
+    for i in range(len(corpus)):
+        f.write('%s\n' % corpus[i])
+    f.close()
+
+
+def get_corpus_from_file(filename):
+    f = open(filename, 'r')
+    lines = f.readlines()
+    corpus = []
+    for i in lines:
+        corpus.append(i.replace('\n', ''))
+    return corpus
+
+
+def content_indices(meta_list, content_corpus):
+    indices = []  # title + abstract + citation
+    for m in meta_list:
+        for j in range(len(content_corpus)):
+            title = m.title
+            abstract = m.abstract
+            citation = m.citation
+            for word in title:
+                if word == content_corpus[j]:
+                    indices.append(j)
+            for word in abstract:
+                if word == content_corpus[j]:
+                    indices.append(j)
+            if citation is not None:
+                for word in citation:
+                    if word == content_corpus[j]:
+                        indices.append(j)
+    return indices
+
+
+def author_indices(meta_list, author_corpus):
+    indices = []
+    for m in meta_list:
+        for j in range(len(author_corpus)):
+            author = m.author
+            for a in author:
+                if a == author_corpus[j]:
+                    indices.append(j)
+    return indices
+
+
+def affiliation_indices(meta_list, affiliation_corpus):
+    indices = []
+    for m in meta_list:
+        for j in range(len(affiliation_corpus)):
+            affiliation = m.affiliation
+            for a in affiliation:
+                if a == affiliation_corpus[j]:
+                    indices.append(j)
+    return indices
+
+
+def get_feature(corpus, indices):
+    features = np.zeros((len(corpus)))
+    for i in indices:
+        features[i] = 1
+    return features
+
+
+def get_features(meta_list):
+    content_corpus = get_corpus_from_file('content_corpus.txt')
+    author_corpus = get_corpus_from_file('author_corpus.txt')
+    affiliation_corpus = get_corpus_from_file('affiliation_corpus.txt')
+    c_indices = content_indices(meta_list, content_corpus)
+    au_indices = author_indices(meta_list, author_corpus)
+    af_indices = affiliation_indices(meta_list, affiliation_corpus)
+    c_feature = get_feature(content_corpus, c_indices)
+    au_feature = get_feature(author_corpus, au_indices)
+    af_feature = get_feature(affiliation_corpus, af_indices)
+    features = []
+    features.extend(c_feature)
+    features.extend(au_feature)
+    features.extend(af_feature)
+    return features
 

@@ -40,13 +40,14 @@ print('Number of Articles: %d' % len(meta_list))
 
 
 
-stop_words = set(stopwords.words("english"))
+# stop_words = set(stopwords.words("english"))
 
+print('Processing Meta list')
 meta_list = process_meta_list(meta_list)
-content_corpus = get_content_corpus(meta_list)
-author_corpus = get_author_corpus(meta_list)
-affiliation_corpus = get_affiliation_corpus(meta_list)
+# content_corpus = get_content_corpus(meta_list)
+# author_corpus = get_author_corpus(meta_list)
+# affiliation_corpus = get_affiliation_corpus(meta_list)
+# content_corpus = get_corpus_from_file('content_corpus.txt')
 
-# def content_indices(meta_list, content_corpus):
-#     indices = []
-#     for i in range(len(meta_list.))
+
+
