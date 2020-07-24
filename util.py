@@ -94,7 +94,7 @@ def crawl_meta(meta_hdf5=None, write_meta_name='data.hdf5'):
         for i in data.index:
             title = data.title[i]
             date = data.date[i]
-            author = data.author[i].replace("['", '').replace("']", '').split("', '")
+            author = data.author[i].replace('\\', '').replace("['", '').replace("']", '').split("', '")
             abstract = data.abstract[i]
             affiliation = data.affiliation[i].replace("['", '').replace("']", '').split("', '")
             doi = data.doi[i]
@@ -111,6 +111,7 @@ def crawl_meta(meta_hdf5=None, write_meta_name='data.hdf5'):
     else:
         meta_list = read_meta(meta_hdf5)
     return meta_list
+
 
 def process_string(s):
     s = s.lower()
@@ -150,22 +151,64 @@ def process_abstract(abstract):
 
 
 def process_author(author):
-    if isinstance(author, pd.core.series.Series):
+    if isinstance(author, list):
         return process_list(author)
     else:
         return None
 
 
 def process_affiliation(affiliation):
-    if isinstance(affiliation, pd.core.series.Series):
+    if isinstance(affiliation, list):
         return process_list(affiliation)
     else:
         return None
 
 
 def process_citation(citation):
-    if isinstance(citation, pd.core.series.Series):
+    if isinstance(citation, list):
         return process_list(citation)
     else:
         return None
+
+
+def process_meta_list(meta_list):
+    for m in meta_list:
+        m.title = process_string(m.title)
+        m.abstract = process_abstract(m.abstract)
+        m.citation = process_citation(m.citation)
+        m.affiliation = process_affiliation(m.affiliation)
+
+    return meta_list
+
+
+def get_content_corpus(meta_list):
+    content_corpus = []  # title + abstract + citation
+    for m in meta_list:
+        title = m.title
+        abstract = m.abstract
+        citation = m.citation
+        content_corpus.extend(title)
+        if abstract is not None:
+            content_corpus.extend(abstract[j])
+        if citation is not None:
+            for j in citation:
+                content_corpus.extend(citation[j])
+    return content_corpus
+
+
+def get_author_corpus(meta_list):
+    author_corpus = []  # author
+    for m in meta_list:
+        author_corpus.extend(m.author)
+    return author_corpus
+
+
+def get_affiliation_corpus(meta_list):
+    affiliation_corpus = []  # affiliation
+    for m in meta_list:
+        affiliation = m.affiliation
+        if affiliation is not None:
+            for j in affiliation:
+                affiliation_corpus.extend(affiliation[j])
+    return affiliation_corpus
 
