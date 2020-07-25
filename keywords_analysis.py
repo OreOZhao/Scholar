@@ -37,4 +37,34 @@ import glob
 # plt.show()
 # fig.savefig('asset/year_freq.png')
 
+stop_words = read_set_from_file('stopwords.txt')
+
 corpus = get_corpus_from_file('content_corpus.txt')
+temp = []
+for word in corpus:
+    if word not in stop_words:
+        temp.append(word)
+
+write_corpus(temp, 'content_without_stopwords.txt')  
+temp = pd.DataFrame(temp)
+
+temp.apply(pd.value_counts)[:50]
+top50 = temp.apply(pd.value_counts)[:50]
+
+
+key = [index for index in top50.index]
+value = [int(value) for value in top50.values]
+y_pos = np.arange(len(key))
+plt.rcdefaults()
+fig, ax = plt.subplots(figsize=(8, 12))
+ax.barh(y_pos, value, align='center', color='blue', ecolor='black', log=True)
+ax.set_yticks(y_pos)
+ax.set_yticklabels(key, rotation=0, fontsize=10)
+ax.invert_yaxis()
+for i, v in enumerate(value):
+    ax.text(v + 3, i + .25, str(v), color='black', fontsize=10)
+
+ax.set_xlabel('Frequency')
+ax.set_title('Nature & Science Top 50 Keywords')
+plt.show()
+fig.savefig('asset/top50keywords.png')
