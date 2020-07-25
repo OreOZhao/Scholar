@@ -8,13 +8,14 @@ import nltk
 import pymysql
 from sqlalchemy import create_engine
 import string
-import seaborn
+import seaborn as sns
 import time
 import os.path
 import glob
 from util import *
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
+import csv
 
 CRAWL_DATA = False
 
@@ -57,14 +58,27 @@ meta_list = process_meta_list(meta_list)
 # clf.fit(train_x, train_y)
 
 
-def accuracy(clf, x, y):
-    predict_y = clf.predict(x)
-    m = y.size
-    count = 0
-    for i in range(m):
-        count = count + np.abs(int(predict_y[i]) - int(y[i]))
-    return 1 - float(count / m)
+    # def accuracy(clf, x, y):
+    #     predict_y = clf.predict(x)
+    #     m = y.size
+    #     count = 0
+    #     for i in range(m):
+    #         count = count + np.abs(int(predict_y[i]) - int(y[i]))
+    #     return 1 - float(count / m)
 #
 #
 # accuracy(clf, train_x, train_y)
+
+
+# keywords_dict = {}
+# for m in meta_list:
+#     for k in m.keywords:
+#         if k in keywords_dict:
+#             keywords_dict[k] = keywords_dict[k] + 1
+#         else:
+#             keywords_dict[k] = 1
+
+
+
+
 

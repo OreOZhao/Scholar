@@ -2,12 +2,13 @@ from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
 from os import path
 from PIL import Image
 import matplotlib.pyplot as plt
-from nltk.corpus import stopwords
+import seaborn as sns
 from util import *
 
-stop_words = set(STOPWORDS)
 
-corpus = open('content_corpus.txt', 'r').read()
+stop_words = read_set_from_file('stopwords.txt')
+
+corpus = open('content_corpus.txt').read()
 
 
 co_wc = WordCloud(
@@ -16,7 +17,7 @@ co_wc = WordCloud(
     max_words=200,
     max_font_size=50,
     random_state=42
-).generate_from_text(corpus)
+).generate(corpus)
 print(co_wc)
 fig = plt.figure(1)
 plt.imshow(co_wc)
@@ -51,3 +52,4 @@ fig.savefig('co_wc.png', dpi=900)
 # plt.axis('off')
 # plt.show()
 # fig.savefig('af_wc.png', dpi=900)
+

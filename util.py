@@ -17,16 +17,19 @@ import glob
 import math
 import random
 from pandas import to_datetime
+import datetime
 
 
 class PaperMeta(object):
-    def __init__(self, title, date, author, abstract, affiliation, doi, citation):
+    def __init__(self, title, date, author, abstract, affiliation, doi, citation, keywords, year):
         self.title = title
         self.date = date
         self.author = author  # series
         self.abstract = abstract
         self.affiliation = affiliation
         self.doi = doi
+        self.keywords = keywords
+        self.year = year
         if isinstance(citation, str):
             self.citation = citation
         else:
@@ -178,8 +181,20 @@ def process_meta_list(meta_list):
         m.abstract = process_abstract(m.abstract)
         m.citation = process_citation(m.citation)
         m.affiliation = process_affiliation(m.affiliation)
-
+        m.date = datetime.datetime.strptime(m.date, "%Y%m%d")
+        m.year = m.date.year
+    process_keywords(meta_list)
     return meta_list
+
+
+def process_keywords(meta_list):
+    stop_words = read_set_from_file('stopwords.txt')
+    for m in meta_list:
+        keywords = []
+        for word in m.title:
+            if word not in stop_words:
+                keywords.append(word)
+        m.keywords = keywords
 
 
 def get_content_corpus(meta_list):
@@ -296,3 +311,91 @@ def get_feature(meta_list):
     scio.savemat('train_data.mat', {'X': matrix, 'y': y})
 
 
+def read_set_from_file(filename):
+    f = open(filename, 'r')
+    lines = f.readlines()
+    read_set = []
+    for line in lines:
+        read_set.append(line.replace('\n', ''))
+    f.close()
+    return set(read_set)
+
+
+def write_set_to_file(filename, write_set):
+    f = open(filename, 'w')
+    for word in write_set:
+        f.write('%s\n' % word)
+    f.close()
+
+
+def get_keywords_dict_by_year(meta_list):
+    dict = {}
+    for m in meta_list:
+        if m.year in dict:
+            for k in m.keywords:
+                if k in dict[m.year]:
+                    dict[m.year][k] += 1
+                else:
+                    dict[m.year][k] = 1
+        else:
+            dict[m.year] = {}
+    return dict
+
+
+def get_subdict_keywords(dict):
+    subdict = {}
+    for key, value in dict.items():
+        subdict[key] = {}
+    for key, value in dict.items():
+        for k, v in value.items():
+            if v > 30:
+                subdict[key][k] = v
+
+
+def write_processed_meta(meta_list, filename):
+    f = h5py.File(filename, 'w')
+    for i, m in enumerate(meta_list):
+        grp = f.create_group(str(i))
+        grp['title'] = '(split)'.join(m.title)
+        grp['date'] = m.date.strftime('%Y%m%d')
+        grp['author'] = '(split)'.join(m.author)
+        if m.abstract is None:
+            grp['abstract'] = '(none)'
+        else:
+            grp['abstract'] = '(split)'.join(m.abstract)
+        temp_aff = []
+        for a in m.affiliation:
+            temp = ''
+            temp += '(split)'.join(a)
+            temp_aff.append(temp)
+        grp['affiliation'] = '(group)'.join(temp_aff)
+        grp['doi'] = m.doi
+        if m.citation is None:
+            grp['citation'] = '(none)'
+        else:
+            grp['citation'] = '(split)'.join(m.citation)
+        grp['keywords'] = '(split)'.join(m.keywords)
+        grp['year'] = m.year
+    f.close()
+
+
+def read_processed_meta(filename):
+    f = h5py.File(filename, 'r')
+    meta_list = []
+    for k in list(f.keys()):
+        meta_list.append(PaperMeta(
+            title=f[k]['title'].value.split('(split)'),
+            date=datetime.datetime.strptime(f[k]['date'].value, "%Y%m%d"),
+            author=f[k]['author'].value.split('(split)'),
+            abstract=f[k]['abstract'].value.split('(split)'),
+            affiliation=f[k]['affiliation'].value.split('(group)'),
+            doi=f[k]['doi'].value,
+            citation=f[k]['citation'].value.split('(split)'),
+            keywords=f[k]['keywords'].value.split('(split)'),
+            year=f[k]['year'].value
+        ))
+    f.close()
+    for m in meta_list:
+        for i in range(len(m.affiliation)):
+            m.affiliation[i] = m.affiliation[i].split('(split)')
+    return meta_list
