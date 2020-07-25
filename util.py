@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.matlib
 import string
 import h5py
 import pandas as pd
@@ -14,7 +15,7 @@ import seaborn
 import time
 import glob
 import math
-
+import random
 from pandas import to_datetime
 
 
@@ -232,68 +233,66 @@ def get_corpus_from_file(filename):
     return corpus
 
 
-def content_indices(meta_list, content_corpus):
+def content_indices(m, content_corpus):
     indices = []  # title + abstract + citation
-    for m in meta_list:
-        for j in range(len(content_corpus)):
-            title = m.title
-            abstract = m.abstract
-            citation = m.citation
-            for word in title:
+    title = m.title
+    abstract = m.abstract
+    citation = m.citation
+    for j in range(len(content_corpus)):
+        for word in title:
+            if word == content_corpus[j]:
+                indices.append(j)
+        for word in abstract:
+            if word == content_corpus[j]:
+                indices.append(j)
+        if citation is not None:
+            for word in citation:
                 if word == content_corpus[j]:
                     indices.append(j)
-            for word in abstract:
-                if word == content_corpus[j]:
-                    indices.append(j)
-            if citation is not None:
-                for word in citation:
-                    if word == content_corpus[j]:
-                        indices.append(j)
     return indices
 
 
-def author_indices(meta_list, author_corpus):
+def author_indices(m, author_corpus):
     indices = []
-    for m in meta_list:
-        for j in range(len(author_corpus)):
-            author = m.author
-            for a in author:
-                if a == author_corpus[j]:
-                    indices.append(j)
+    for j in range(len(author_corpus)):
+        author = m.author
+        for a in author:
+            if a == author_corpus[j]:
+                indices.append(j)
     return indices
 
 
-def affiliation_indices(meta_list, affiliation_corpus):
+def affiliation_indices(m, affiliation_corpus):
     indices = []
-    for m in meta_list:
-        for j in range(len(affiliation_corpus)):
-            affiliation = m.affiliation
-            for a in affiliation:
-                if a == affiliation_corpus[j]:
-                    indices.append(j)
+    for j in range(len(affiliation_corpus)):
+        affiliation = m.affiliation
+        for a in affiliation:
+            if a == affiliation_corpus[j]:
+                indices.append(j)
     return indices
 
 
-def get_feature(corpus, indices):
-    features = np.zeros((len(corpus)))
-    for i in indices:
-        features[i] = 1
-    return features
+def get_feature(meta_list):
+    content_corpus = get_corpus_from_file('most2000_content.txt')
+    author_corpus = get_corpus_from_file('most2000_author.txt')
+    affiliation_corpus = get_corpus_from_file('most2000_affiliation.txt')
+    feature_len = len(content_corpus) + len(author_corpus) + len(affiliation_corpus)
+    matrix = np.zeros(feature_len)
+    sample = random.sample(meta_list, 4000)
+    for m in sample:
+        feature = np.zeros(feature_len, dtype=int)
+        co_indices = content_indices(m, content_corpus)
+        for each in co_indices:
+            feature[each] = 1
+        au_indices = author_indices(m, author_corpus)
+        for each in au_indices:
+            feature[each + len(content_corpus)] = 1
+        af_indices = affiliation_indices(m, affiliation_corpus)
+        for each in af_indices:
+            feature[each + len(content_corpus) + len(author_corpus)] = 1
+        matrix = np.vstack((matrix, feature))
+    np.delete(matrix, 0, axis=0)
+    y = np.ones((len(matrix), 1), dtype=int)
+    scio.savemat('train_data.mat', {'X': matrix, 'y': y})
 
-
-def get_features(meta_list):
-    content_corpus = get_corpus_from_file('content_corpus.txt')
-    author_corpus = get_corpus_from_file('author_corpus.txt')
-    affiliation_corpus = get_corpus_from_file('affiliation_corpus.txt')
-    c_indices = content_indices(meta_list, content_corpus)
-    au_indices = author_indices(meta_list, author_corpus)
-    af_indices = affiliation_indices(meta_list, affiliation_corpus)
-    c_feature = get_feature(content_corpus, c_indices)
-    au_feature = get_feature(author_corpus, au_indices)
-    af_feature = get_feature(affiliation_corpus, af_indices)
-    features = []
-    features.extend(c_feature)
-    features.extend(au_feature)
-    features.extend(af_feature)
-    return features
 

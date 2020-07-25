@@ -32,12 +32,12 @@ else:
 
 print('Number of Articles: %d' % len(meta_list))
 
+count_article = len(meta_list)
 
 # data = get_data()
 
 
 # freq = pd.Series(data.abstract[1].split()).value_counts()[:20]
-
 
 
 # stop_words = set(stopwords.words("english"))
@@ -50,4 +50,21 @@ meta_list = process_meta_list(meta_list)
 # content_corpus = get_corpus_from_file('content_corpus.txt')
 
 
+# train = scio.loadmat('train.mat')
+# train_x = train['x']
+# train_y = train['y']
+# clf = svm.SVC(C=0.1, kernel='linear')
+# clf.fit(train_x, train_y)
+
+
+def accuracy(clf, x, y):
+    predict_y = clf.predict(x)
+    m = y.size
+    count = 0
+    for i in range(m):
+        count = count + np.abs(int(predict_y[i]) - int(y[i]))
+    return 1 - float(count / m)
+#
+#
+# accuracy(clf, train_x, train_y)
 

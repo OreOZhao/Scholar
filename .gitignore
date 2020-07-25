@@ -2,3 +2,5 @@
 __pycache__/
 *.txt
 *.hdf5
+*.mat
+*.png
