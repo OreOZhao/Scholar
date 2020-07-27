@@ -399,3 +399,5 @@ def read_processed_meta(filename):
         for i in range(len(m.affiliation)):
             m.affiliation[i] = m.affiliation[i].split('(split)')
     return meta_list
+
+
