@@ -91,6 +91,39 @@ def get_data():
     return data
 
 
+def get_science_data():
+    db = pymysql.connect(host="localhost", user="root", password="root", db="scholar")
+    cursor = db.cursor()
+    engine = create_engine("mysql+pymysql://root:root@localhost/scholar")
+    # sql = "select * from %s"
+    data_sci = pd.io.sql.read_sql_table("science", engine)
+    data_sci.date = pd.to_datetime(data_sci.date, format="%Y-%m-%d")
+    # print(type(data_sci), '\n', data_sci)
+    # print(type(data_nat), '\n', data_nat)
+    data = data_sci
+    for i in data.index:
+        if data.title[i] is None:
+            data = data.drop(index=i)
+    return data
+
+
+def get_nature_data():
+    db = pymysql.connect(host="localhost", user="root", password="root", db="scholar")
+    cursor = db.cursor()
+    engine = create_engine("mysql+pymysql://root:root@localhost/scholar")
+    # sql = "select * from %s"
+    # print(type(data_sci), '\n', data_sci)
+    data_nat = pd.io.sql.read_sql_table("nature", engine)
+    data_nat.date = pd.to_datetime(data_nat.date, format="%d-%m-%Y")
+
+    # print(type(data_nat), '\n', data_nat)
+    data = data_nat
+    for i in data.index:
+        if data.title[i] is None:
+            data = data.drop(index=i)
+    return data
+
+
 def crawl_meta(meta_hdf5=None, write_meta_name='data.hdf5'):
     if meta_hdf5 is None:
         meta_list = []
@@ -102,7 +135,7 @@ def crawl_meta(meta_hdf5=None, write_meta_name='data.hdf5'):
             abstract = data.abstract[i]
             affiliation = data.affiliation[i].replace("['", '').replace("']", '').split("', '")
             doi = data.doi[i]
-            if isinstance(data.citation[i], str):
+            if 'citation' in data.keys() and isinstance(data.citation[i], str):
                 citation = data.citation[i].replace("['", '').replace("']", '').split("', '")
             else:
                 citation = None
@@ -197,6 +230,36 @@ def process_keywords(meta_list):
         m.keywords = keywords
 
 
+def get_title_corpus(meta_list, filename):
+    corpus = []  # title
+    for m in meta_list:
+        title = m.title
+        corpus.extend(title)
+    write_corpus(corpus, filename)
+    return corpus
+
+
+def get_abstract_corpus(meta_list, filename):
+    corpus = []  # title
+    for m in meta_list:
+        abstract = m.abstract
+        if abstract is not None:
+            corpus.extend(abstract)
+    write_corpus(corpus, filename)
+    return corpus
+
+
+def get_citation_corpus(meta_list, filename):
+    corpus = []  # title
+    for m in meta_list:
+        citation = m.citation
+        if citation is not None:
+            for j in citation:
+                corpus.extend(j)
+    write_corpus(corpus, filename)
+    return corpus
+
+
 def get_content_corpus(meta_list):
     content_corpus = []  # title + abstract + citation
     for m in meta_list:
@@ -213,11 +276,11 @@ def get_content_corpus(meta_list):
     return content_corpus
 
 
-def get_author_corpus(meta_list):
+def get_author_corpus(meta_list, filename):
     author_corpus = []  # author
     for m in meta_list:
         author_corpus.extend(m.author)
-    write_corpus(author_corpus, 'author_corpus.txt')
+    write_corpus(author_corpus, filename)
     return author_corpus
 
 
@@ -350,6 +413,7 @@ def get_subdict_keywords(dict):
         for k, v in value.items():
             if v > 30:
                 subdict[key][k] = v
+    return subdict
 
 
 def write_processed_meta(meta_list, filename):
@@ -401,3 +465,40 @@ def read_processed_meta(filename):
     return meta_list
 
 
+def get_keywords_df(subdict):
+    x_year = []
+    y_freq = []
+    keywords = []
+    for key, value in subdict.items():
+        for k, v in value.items():
+            x_year.append(key)
+            y_freq.append(v)
+            keywords.append(k)
+    df = pd.DataFrame({'Year': x_year, 'Frequency': y_freq, 'Keyword': keywords})
+    df = df.sort_values(by='Year', ascending=True)
+    return df
+
+
+def tf_idf_keywords(dict):
+    tf_idf = dict
+    tf = {}
+    for key in dict.keys():
+        tf[key] = {}
+    for key, value in dict.items():
+        for k, v in dict[key].items():
+            tf[key][k] = v / len(dict[key])
+
+    idf = {}
+    a = pd.DataFrame.from_dict(dict)
+    for i in list(a.index):
+        idf[i] = 0
+    for i in idf.keys():
+        for k in a.keys():
+            if not math.isnan(a[k][i]):
+                idf[i] += 1
+    for k in idf.keys():
+        idf[k] = math.log(51 / idf[k] + 1)
+    for key, value in dict.items():
+        for k, v in value.items():
+            tf_idf[key][k] = tf[key][k] * idf[k]
+    return tf_idf
