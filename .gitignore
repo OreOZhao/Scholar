@@ -5,4 +5,10 @@ __pycache__/
 *.mat
 *.csv
 *.json
+*.html
+*.model
+*.dict
 *.png
+*.npy
+*.id2word
+*.state
