@@ -141,7 +141,7 @@ def crawl_meta(meta_hdf5=None, write_meta_name='data.hdf5'):
                 citation = None
 
             meta_list.append(PaperMeta(
-                title, date, author, abstract, affiliation, doi, citation
+                title, date, author, abstract, affiliation, doi, citation, year=None, keywords=None
             ))
 
         write_meta(meta_list, write_meta_name)
