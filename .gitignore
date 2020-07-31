@@ -1,5 +1,9 @@
 .idea/
 __pycache__/
+
+data/
+asset/
+
 *.txt
 *.hdf5
 *.mat
