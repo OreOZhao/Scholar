@@ -1,10 +1,10 @@
+import codecs
+import json
 from numbers import Number
 
-from util import *
-import re
-import codecs, json
-import numpy as np
 from sklearn.cluster import KMeans
+
+from util import *
 
 # unprocessed data
 # meta_list = read_meta('origin_data.hdf5')
