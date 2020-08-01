@@ -6,6 +6,8 @@ from sklearn.cluster import KMeans
 
 from util import *
 
+# Use K-Means to build cluster of GloVe word vector in title.
+
 # unprocessed data
 # meta_list = read_meta('origin_data.hdf5')
 # data = get_data()
