@@ -25,8 +25,23 @@ from util import *
 #     else:
 #         nat_meta.append(m)
 
-vector_file = '/Users/limingxia/downloads/glove.6b/glove.6B.50d.txt'
-corpus = get_corpus_from_file('nat_title_origin_corpus.txt')
+vector_file = 'GloVe/nat_abstract_vectors.txt'
+corpus = get_corpus_from_file('data/nat_abstract_origin_corpus.txt')
+# nat_data = get_nature_data()
+# nat_abstract = nat_data.abstract.to_list()
+# nat_abstract = [a for a in nat_abstract if a is not None]
+
+
+def get_origin_abstract_corpus(nat_abstract):
+    s = set([])
+    for i in range(len(nat_abstract)):
+        a = re.split('[ @$/#.-:&*+=\[\]?!()\{\},\'\">_<;%]', nat_abstract[i].lower())
+        temp = []
+        for j in a:
+            if len(j) > 1 and '-' not in j and '–' not in j and '—' not in j:
+                temp.append(j)
+        s = s.union(set(temp))
+    write_set_to_file('nat_abstract_origin_corpus.txt', s)
 
 
 def get_origin_title_corpus(meta_list):
@@ -48,13 +63,12 @@ def build_word_vector_matrix(corpus, vector_file):
     with codecs.open(vector_file, 'r', 'utf-8') as f:
         for i, line in enumerate(f):
             sr = line.split()
-            if sr[0] in corpus:
+            if sr[0] in corpus and len(sr) == 51:
                 labels_array.append(sr[0])
                 vec_arrays.append(np.array([float(j) for j in sr[1:]]))
     return np.array(vec_arrays), labels_array
 
 
-# affiliation clustering
 class autovivify_list(dict):
     def __missing__(self, key):
         value = self[key] = []
@@ -92,4 +106,4 @@ vec_arrays = np.array(vec_arrays)
 kmeans_model.fit(vec_arrays)
 cluster_labels = kmeans_model.labels_
 cluster_to_words = list(find_word_clusters(labels_array, cluster_labels).values())
-save_json('nat_title_50D_100_clusters.json', cluster_to_words)
+save_json('data/nat_abstract_50D_100_clusters.json', cluster_to_words)

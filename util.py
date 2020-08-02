@@ -21,7 +21,7 @@ import datetime
 
 
 class PaperMeta(object):
-    def __init__(self, title, date, author, abstract, affiliation, doi, citation, keywords, year):
+    def __init__(self, title, date, author, abstract, affiliation, doi, citation, keywords=None, year=None):
         self.title = title
         self.date = date
         self.author = author  # series
