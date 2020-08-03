@@ -10,15 +10,14 @@ stop_words = read_set_from_file('data/stopwords.txt')
 nat_data = get_nature_data()
 # title
 
-# title = nat_data.title.to_list()
-# texts = [[word for word in document.lower().split() if word not in stop_words] for document in title]
-# texts = list(list(title words))
+title = nat_data.title.to_list()
+texts = [[word for word in document.lower().split() if word not in stop_words] for document in title]
 
 # # abstract
-abstract = nat_data.abstract.to_list()
-while None in abstract:
-    abstract.remove(None)
-texts = [[word for word in document.lower().split() if word not in stop_words] for document in abstract]
+# abstract = nat_data.abstract.to_list()
+# while None in abstract:
+#     abstract.remove(None)
+# texts = [[word for word in document.lower().split() if word not in stop_words] for document in abstract]
 
 dictionary = corpora.Dictionary(texts)
 # Converting list of documents (corpus) into Document Term Matrix using dictionary prepared above.
@@ -26,8 +25,10 @@ corpus = [dictionary.doc2bow(text) for text in texts]  # construct Bag Of Word c
 tfidf_model = models.TfidfModel(corpus)  # construct tf-idf model
 corpus_tfidf = tfidf_model[corpus]  # get corpus's tf-idf
 # construct LDA model
-lda = LdaModel(corpus=corpus_tfidf, id2word=dictionary, num_topics=3)
-lda.show_topics(3)
+lda = LdaModel(corpus=corpus_tfidf, id2word=dictionary, num_topics=5)
+lda.show_topics(5)
+
+
 # prob is the distribution of LDA topic probability
 # p(word w| topic t): probability of each word belonging to each topic
 # p(topic t| document d): each article belongs to each topic by percentage of similarity
@@ -59,9 +60,11 @@ lda.show_topics(3)
 # docs_topics_prob = np.array(probs)
 #
 #
-# def get_doc_topic_id(doc_id):
-#     result = np.where(docs_topics_prob[doc_id] == docs_topics_prob[doc_id].max())
-#     return result[0][0]
+def get_doc_topic_id(doc_id, docs_topics_prob):
+    result = np.where(docs_topics_prob[doc_id] == docs_topics_prob[doc_id].max())
+    return result[0][0]
+
+
 #
 #
 # topic_doc_num = [0, 0, 0, 0, 0]
@@ -84,3 +87,24 @@ lda.show_topics(3)
 #     plt.xlabel('topic word in doc probability')
 # plt.show()
 # fig.savefig('asset/nature/nat_abstract_word_in_doc_prob.png')
+
+loading = LdaModel.load('data/nat_title_topic.model')
+loading.minimum_probability = 0
+abstract = nat_data.abstract.to_list()
+abstract_texts = [[word for word in document.lower().split() if word not in stop_words] for document in abstract]
+
+abstract_topics = [loading[dictionary.doc2bow(abstract_texts[i])] for i in range(len(abstract_texts)) if
+                   len(abstract_texts[i]) > 0]
+probs = [[entry[1] for entry in doc] for doc in abstract_topics]
+abs_topics_prob = np.array(probs)
+
+title_topics = lda.get_document_topics(corpus, 0)
+probs = [[entry[1] for entry in title_topics[i]] for i in range(len(title_topics)) if len(abstract_texts[i]) > 0]
+title_topics_prob = np.array(probs)
+
+count = 0
+for i in range(len(abs_topics_prob)):
+    if get_doc_topic_id(i, abs_topics_prob) == get_doc_topic_id(i, title_topics_prob):
+        count += 1
+# count = 27514
+# count / len(abs_topics_prob) = 0.5229406621811685
