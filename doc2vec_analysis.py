@@ -1,10 +1,20 @@
 import gensim
+from gensim import corpora, models
 from gensim.models.doc2vec import Doc2Vec
+from gensim.models.ldamodel import LdaModel
 from util import *
-import numpy as np
-import pandas as pd
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+
+lda_model = LdaModel.load('data/nat_title_topic.model')
+
+nat_title_lda_probs = np.load('data/nat_title_lda_probs.npy')
+
+
+def get_doc_topic_id(doc_id, docs_topics_prob):
+    result = np.where(docs_topics_prob[doc_id] == docs_topics_prob[doc_id].max())
+    return result[0][0]
+
 
 LabeledSentence = gensim.models.doc2vec.TaggedDocument
 nat_meta = read_processed_meta('data/nat_meta.hdf5')
@@ -12,8 +22,10 @@ docs = [' '.join(nat_meta[i].title) + ' ' + ' '.join(nat_meta[i].abstract) for i
 content_train = []  # title + abstract
 for i in range(len(docs)):
     content_train.append(LabeledSentence(docs[i], [i]))
+    # # for multi tags
+    # content_train.append(LabeledSentence(docs[i], [i, get_doc_topic_id(i, nat_title_lda_probs)]))
 
-d2v_model = Doc2Vec(content_train, window=10, min_count=500, worker=8, dm=1, alpha=0.025, min_alpha=0.001)
+d2v_model = Doc2Vec(content_train, window=10, min_count=100, worker=8, dm=1, alpha=0.025, min_alpha=0.001)
 d2v_model.train(content_train, total_examples=d2v_model.corpus_count, epochs=10, start_alpha=0.002, end_alpha=-0.016)
 
 d2v_model.save('data/nat_doc2vec_model')

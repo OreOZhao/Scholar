@@ -87,24 +87,24 @@ def get_doc_topic_id(doc_id, docs_topics_prob):
 #     plt.xlabel('topic word in doc probability')
 # plt.show()
 # fig.savefig('asset/nature/nat_abstract_word_in_doc_prob.png')
-
-loading = LdaModel.load('data/nat_title_topic.model')
-loading.minimum_probability = 0
-abstract = nat_data.abstract.to_list()
-abstract_texts = [[word for word in document.lower().split() if word not in stop_words] for document in abstract]
-
-abstract_topics = [loading[dictionary.doc2bow(abstract_texts[i])] for i in range(len(abstract_texts)) if
-                   len(abstract_texts[i]) > 0]
-probs = [[entry[1] for entry in doc] for doc in abstract_topics]
-abs_topics_prob = np.array(probs)
-
-title_topics = lda.get_document_topics(corpus, 0)
-probs = [[entry[1] for entry in title_topics[i]] for i in range(len(title_topics)) if len(abstract_texts[i]) > 0]
-title_topics_prob = np.array(probs)
-
-count = 0
-for i in range(len(abs_topics_prob)):
-    if get_doc_topic_id(i, abs_topics_prob) == get_doc_topic_id(i, title_topics_prob):
-        count += 1
+#
+# loading = LdaModel.load('data/nat_title_topic.model')
+# loading.minimum_probability = 0
+# abstract = nat_data.abstract.to_list()
+# abstract_texts = [[word for word in document.lower().split() if word not in stop_words] for document in abstract]
+#
+# abstract_topics = [loading[dictionary.doc2bow(abstract_texts[i])] for i in range(len(abstract_texts)) if
+#                    len(abstract_texts[i]) > 0]
+# probs = [[entry[1] for entry in doc] for doc in abstract_topics]
+# abs_topics_prob = np.array(probs)
+#
+# title_topics = lda.get_document_topics(corpus, 0)
+# probs = [[entry[1] for entry in title_topics[i]] for i in range(len(title_topics)) if len(abstract_texts[i]) > 0]
+# title_topics_prob = np.array(probs)
+#
+# count = 0
+# for i in range(len(abs_topics_prob)):
+#     if get_doc_topic_id(i, abs_topics_prob) == get_doc_topic_id(i, title_topics_prob):
+#         count += 1
 # count = 27514
 # count / len(abs_topics_prob) = 0.5229406621811685
