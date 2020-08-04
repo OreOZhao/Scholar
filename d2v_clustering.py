@@ -47,3 +47,15 @@ centroids = kmeans_model.cluster_centers_
 centroidpoint = pca.transform(centroids)
 plt.scatter(centroidpoint[:, 0], centroidpoint[:, 1], marker='^', s=150, c='#000000')
 plt.show()
+
+# EVALUATE CLUSTERING
+# metrics.silhouette_score(d2v_lda_model.docvecs.doctag_syn0, labels, metric='euclidean')
+# 轮廓系数 轮廓系数处于[-1,1]的范围内，-1表示错误的聚类，1表示高密度的聚类，0附近表示重叠的聚类；
+# 0.064320594       # multi tags
+# -0.007895615      $ single tags
+
+# metrics.calinski_harabasz_score(d2v_lda_model.docvecs.doctag_syn0, labels)
+# CH指标 当簇类密集且簇间分离较好时，Caliniski-Harabaz分数越高，聚类性能越好。
+# 4406.480558416206     # multi tags
+# metrics.silhouette_score(d2v_model.docvecs.doctag_syn0, labels, metric='euclidean')
+# 419.0933658113983     # single tags

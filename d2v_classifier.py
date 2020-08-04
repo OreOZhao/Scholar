@@ -131,8 +131,8 @@ y_pred = logreg.predict(X_test)
 # print('Testing F1 score for Nature and Science classifier %s' % f1_score(y_test, y_pred, average='weighted'))
 
 print('Testing accuracy for Nature, Science and other papers classifier %s' % accuracy_score(y_test, y_pred))
-print('Testing F1 score for Nature, Science and other papers classifier %s' % f1_score(y_test, y_pred, average='weighted'))
-
+print('Testing F1 score for Nature, Science and other papers classifier %s' % f1_score(y_test, y_pred,
+                                                                                       average='weighted'))
 
 # Testing accuracy for Nature and Science classifier 0.503
 # Testing F1 score for Nature and Science classifier 0.502770155504382
