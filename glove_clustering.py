@@ -27,6 +27,8 @@ from util import *
 
 vector_file = 'GloVe/nat_abstract_vectors.txt'
 corpus = get_corpus_from_file('data/nat_abstract_origin_corpus.txt')
+
+
 # nat_data = get_nature_data()
 # nat_abstract = nat_data.abstract.to_list()
 # nat_abstract = [a for a in nat_abstract if a is not None]

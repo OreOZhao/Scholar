@@ -405,13 +405,13 @@ def get_keywords_dict_by_year(meta_list):
     return dict
 
 
-def get_subdict_keywords(dict):
+def get_subdict_keywords(dict, threshold):
     subdict = {}
     for key, value in dict.items():
         subdict[key] = {}
     for key, value in dict.items():
         for k, v in value.items():
-            if v > 30:
+            if v > threshold:
                 subdict[key][k] = v
     return subdict
 

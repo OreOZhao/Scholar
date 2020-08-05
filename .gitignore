@@ -3,6 +3,7 @@ __pycache__/
 
 data/
 asset/
+test/
 
 *.txt
 *.hdf5
