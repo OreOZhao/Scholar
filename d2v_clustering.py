@@ -39,7 +39,7 @@ datapoint = pca.transform(d2v_model.docvecs.doctag_syn0)
 
 import matplotlib.pyplot as plt
 
-fig = plt.figure
+fig = plt.figure()
 label1 = ["#FFFF00", "#008000", "#0000FF", "#800080", "#77e0c6"]
 color = [label1[i] for i in labels]
 plt.scatter(datapoint[:, 0], datapoint[:, 1], c=color)
