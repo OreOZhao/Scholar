@@ -13,6 +13,10 @@ nat_data = get_nature_data()
 title = nat_data.title.to_list()
 texts = [[word for word in document.lower().split() if word not in stop_words] for document in title]
 
+# content = [nat_data.title[i] + nat_data.abstract[i] if nat_data.abstract[i] is not None else nat_data.title[i] for i in
+#            range(len(nat_data))]
+# texts = [[word for word in document.lower().split() if word not in stop_words] for document in content]
+
 # # abstract
 # abstract = nat_data.abstract.to_list()
 # while None in abstract:
@@ -34,7 +38,7 @@ lda.show_topics(5)
 # p(topic t| document d): each article belongs to each topic by percentage of similarity
 # data visualization
 # vis_data = pyLDAvis.gensim.prepare(lda, corpus, dictionary)
-# pyLDAvis.display(vis_data)
+# # pyLDAvis.display(vis_data)
 # pyLDAvis.save_html(vis_data, 'nat_title_lda_visualization.html')
 
 # fig = plt.figure(figsize=(15, 30))
@@ -60,9 +64,6 @@ lda.show_topics(5)
 # docs_topics_prob = np.array(probs)
 #
 #
-def get_doc_topic_id(doc_id, docs_topics_prob):
-    result = np.where(docs_topics_prob[doc_id] == docs_topics_prob[doc_id].max())
-    return result[0][0]
 
 
 #
@@ -108,3 +109,76 @@ def get_doc_topic_id(doc_id, docs_topics_prob):
 #         count += 1
 # count = 27514
 # count / len(abs_topics_prob) = 0.5229406621811685
+
+def get_doc_topic_id(doc_id, docs_topics_prob):
+    result = np.where(docs_topics_prob[doc_id] == docs_topics_prob[doc_id].max())
+    return result[0][0]
+
+
+doc_topics = lda.get_document_topics(corpus, 0)
+probs = [[entry[1] for entry in doc] for doc in doc_topics]
+docs_topics_prob = np.array(probs)
+
+topic_doc_year_num = np.zeros((50, 10))
+for i in range(len(docs_topics_prob)):
+    y = int(nat_data.year[i] - 1971)
+    t = get_doc_topic_id(i, docs_topics_prob)
+    topic_doc_year_num[y][t] += 1
+
+colors = ['rosybrown', 'lightcoral', 'indianred', 'brown', 'peru', 'darkorange', 'gold', 'yellow', 'green',
+          'darkgoldenrod']
+
+fig = plt.figure(figsize=(30, 15))
+x = np.arange(1971, 2021)
+for i in range(10):
+    plt.plot(x, topic_doc_year_num[:, i], c=colors[i], marker='o', label='topic ' + str(i))
+
+plt.xlabel('Year')
+plt.ylabel('Document Count of Topic')
+plt.legend()
+plt.show()
+
+topic_doc_year_prob = topic_doc_year_num.copy()
+doc_year_sums = [sum(topic_doc_year_prob[i]) for i in range(0, 50)]
+doc_year_sums = np.array(doc_year_sums)
+doc_year_sums = np.transpose([doc_year_sums])
+topic_doc_year_prob = topic_doc_year_prob / doc_year_sums
+
+
+fig = plt.figure(figsize=(30, 15))
+x = np.arange(1971, 2021)
+for i in range(10):
+    plt.plot(x, topic_doc_year_num[:, i], c=colors[i], marker='o', label='topic ' + str(i))
+
+plt.xlabel('Year')
+plt.ylabel('Document Count of Topic')
+plt.legend()
+plt.show()
+fig.savefig('asset/nat_title_topic_doc_year_num.png')
+fig = plt.figure(figsize=(30, 15))
+x = np.arange(1971, 2021)
+for i in range(10):
+    plt.plot(x, topic_doc_year_prob[:, i], c=colors[i], marker='o', label='topic ' + str(i))
+
+plt.xlabel('Year')
+plt.ylabel('Topic Proportion')
+plt.legend()
+plt.show()
+fig.savefig('asset/nat_title_topic_doc_year_prop.png')
+x = np.arange(0, 5, 1)
+slope = []
+for i in range(10):
+    y = topic_doc_year_prob[:, i][45:]
+    s = np.polyfit(x, y, 1)[0]
+    slope.append(s)
+
+# [0.005684385289254376,
+#  -0.012228457420560845,
+#  0.0007277551601986786,
+#  -0.008248699253415797,
+#  0.007072524425547986,
+#  -0.001269505858189854,
+#  -0.00024570838055559363,
+#  0.007331337379807375,
+#  0.0005847706319945414,
+#  0.0005915980259189647]

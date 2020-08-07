@@ -6,6 +6,8 @@ from sklearn.decomposition import PCA
 from sklearn import metrics
 from util import *
 
+import snap
+
 # Use K-Means to build cluster of GloVe word vector in title.
 
 # unprocessed data
@@ -137,16 +139,18 @@ nat_pca_kmeans_model.fit(nat_datapoints)
 
 nat_pca_cluster_labels = nat_pca_kmeans_model.labels_
 metrics.silhouette_score(nat_datapoints, nat_pca_cluster_labels, metric='euclidean')
-
+ch_score = []
 sil_score = []
 
-for nc in list([2, 5, 10, 20, 30, 40]):
+for nc in list([2, 5, 10, 20, 30, 40, 50]):
     pca = PCA(n_components=nc).fit(vec_arrays)
     datapoints = pca.transform(vec_arrays)
     kmeans_model = KMeans(init='k-means++', n_clusters=100, n_jobs=10, n_init=10)
     kmeans_model.fit(datapoints)
     cluster_labels = kmeans_model.labels_
+    ch = metrics.calinski_harabasz_score(datapoints, cluster_labels)
     ss = metrics.silhouette_score(datapoints, cluster_labels, metric='euclidean')
+    ch_score.append(ch)
     sil_score.append(ss)
 
 # [0.3211418747332224,
@@ -168,6 +172,9 @@ for i in range(1, len(pre_vec_arrays2)):
 
 con_vec_array = con_vec_arrays
 con_label_array = pre_label_array2
+
+pca = PCA(n_components=2).fit(con_vec_array)
+datapoints = pca.transform(con_vec_array)
 
 kmeans_model = KMeans(init='k-means++', n_clusters=100, n_jobs=10, n_init=10)
 kmeans_model.fit(con_vec_array)

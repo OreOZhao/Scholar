@@ -167,7 +167,9 @@ def process_string(s):
             token = ''
         if len(token) < 1:
             continue  # 字符串长度小于1的不添加到tokenlist里
-        tokenlist.append(token)
+        stop_words = read_set_from_file('data/stopwords.txt')
+        if token not in stop_words:
+            tokenlist.append(token)
 
     return tokenlist
 
