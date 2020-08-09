@@ -1,6 +1,4 @@
 import numpy as np
-import numpy.matlib
-import string
 import h5py
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,7 +8,6 @@ import re
 import nltk
 import pymysql
 from sqlalchemy import create_engine
-import string
 import seaborn
 import time
 import glob

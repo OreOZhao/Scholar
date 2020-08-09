@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 
 stop_words = read_set_from_file('data/stopwords.txt')
 nat_data = get_nature_data()
-# title
+nat_data = nat_data.reset_index(drop=True)
 
+# title
 title = nat_data.title.to_list()
 texts = [[word for word in document.lower().split() if word not in stop_words] for document in title]
 
@@ -155,6 +156,8 @@ plt.ylabel('Document Count of Topic')
 plt.legend()
 plt.show()
 fig.savefig('asset/nat_title_topic_doc_year_num.png')
+
+
 fig = plt.figure(figsize=(30, 15))
 x = np.arange(1971, 2021)
 for i in range(10):
@@ -165,6 +168,7 @@ plt.ylabel('Topic Proportion')
 plt.legend()
 plt.show()
 fig.savefig('asset/nat_title_topic_doc_year_prop.png')
+
 x = np.arange(0, 5, 1)
 slope = []
 for i in range(10):
