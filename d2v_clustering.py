@@ -66,10 +66,12 @@ d2v = Doc2Vec.load('data/nat_doc2vec_model')
 d2v_vecs = d2v.docvecs.doctag_syn0
 
 import umap
+
 umap_data = umap.UMAP(n_neighbors=5, min_dist=0.3, n_components=2).fit_transform(d2v_vecs[:1000])
 
 # Birch Clustering
 from sklearn.cluster import Birch
+
 brc = Birch(branching_factor=50, n_clusters=5, threshold=0.1, compute_labels=True)
 brc.fit(umap_data)
 clusters = brc.predict(umap_data)
@@ -82,19 +84,21 @@ plt.scatter(umap_data[:, 0], umap_data[:, 1], c=color)
 plt.show()
 
 from sklearn import metrics
+
 metrics.silhouette_score(umap_data, labels)
 # Birch 0.26647902
 
 # AP Clustering
 from sklearn.cluster import AffinityPropagation
-af = AffinityPropagation(preference =-50).fit(umap_data)
+
+af = AffinityPropagation(preference=-50).fit(umap_data)
 cluster_centers_indices = af.cluster_centers_indices_
 labels = af.labels_
 
 n_clusters_ = len(cluster_centers_indices)
-plt.figure(figsize=(12,8))
+plt.figure(figsize=(12, 8))
 plt.title('Decomposition using UMAP')
-plt.scatter(umap_data[:,0], umap_data[:,1])
+plt.scatter(umap_data[:, 0], umap_data[:, 1])
 plt.show()
 
 # 0 cluster
@@ -111,4 +115,73 @@ plt.scatter(umap_data[:, 0], umap_data[:, 1], c=color)
 plt.show()
 metrics.silhouette_score(umap_data, kmeans_model.labels_)
 
+
 # 0.37112647
+
+def doc_dist(a, b):
+    return np.sqrt(sum(np.power((a - b), 2)))
+
+
+def doc_sim(a, b):
+    return 1 / (doc_dist(a, b) + 1)
+
+
+labels = kmeans_model.labels_
+
+cluster_to_doc = []
+for i in range(5):
+    cluster_to_doc.append([])
+    cluster_to_doc[i] = [j for j in range(len(labels)) if labels[j] == i]
+
+cen_id = []
+for i in range(5):
+    c = kmeans_model.transform(umap_data)[:, i]
+    id = np.where(c == c.min())[0][0]
+    cen_id.append(id)
+
+nat_data = get_nature_data()
+cen_doc = [nat_data.title[i] + " "+ nat_data.abstract[i] if nat_data.abstract[i] is not None else nat_data.title[i] for i in cen_id]
+
+cluster_inner_sim = []
+for i in range(5):
+    l = len(cluster_to_doc[i])
+    cluster_inner_sim.append(np.zeros([l, l]))
+    for j in range(l):
+        for k in range(l):
+            a_id = cluster_to_doc[i][j]
+            b_id = cluster_to_doc[i][k]
+            cluster_inner_sim[i][j][k] = doc_sim(umap_data[a_id], umap_data[b_id])
+
+
+def calc_ent(i, sim):
+    m = len(sim[i])
+    ent = 0
+    for j in range(m):
+        tmp = sim[i][j] * math.log2(sim[i][j] + 1)
+        ent += tmp
+    return ent
+
+
+cluster_inner_ent = []
+for i in range(5):
+    l = len(cluster_to_doc[i])
+    cluster_inner_ent.append(np.zeros(l))
+    for j in range(l):
+        cluster_inner_ent[i][j] = calc_ent(j, cluster_inner_sim[i])
+
+
+highest_ent_id = [np.where(cluster_inner_ent[i] == cluster_inner_ent[i].max())[0][0] for i in range(5)]
+
+highest_ent_doc_id = [cluster_to_doc[i][highest_ent_id[i]] for i in range(5)]
+
+highest_ent_doc = [nat_data.title[i] + " "+ nat_data.abstract[i] if nat_data.abstract[i] is not None else nat_data.title[i] for i in highest_ent_doc_id]
+
+# DBSCAN
+from sklearn.cluster import DBSCAN
+
+dbs = DBSCAN(eps=0.5)
+y_pred = dbs.fit_predict(umap_data)
+plt.scatter(umap_data[:, 0], umap_data[:, 1], c=y_pred)
+plt.show()
+metrics.calinski_harabasz_score(umap_data, dbs.labels_)
+metrics.silhouette_score(umap_data, dbs.labels_)
